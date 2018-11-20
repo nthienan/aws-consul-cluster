@@ -20,7 +20,7 @@
 
   - **One click**: 
   
-    [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=clb-getting-started&templateURL=https://s3-ap-southeast-1.amazonaws.com/nthienan-public/cloudformation/aws-consul-cluster/aws-consul-cluster.yaml)
+    [![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://console.aws.amazon.com/cloudformation/home?#/stacks/new?stackName=consul-cluster&templateURL=https://s3-ap-southeast-1.amazonaws.com/nthienan-public/cloudformation/aws-consul-cluster/aws-consul-cluster.yaml)
 
   - **Create stack**:
     ```bash
