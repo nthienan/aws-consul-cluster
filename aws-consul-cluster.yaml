@@ -1,0 +1,369 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Consul cluster
+Parameters:
+  Region:
+    Type: String
+    Description: AWS Region
+    Default: ap-southeast-1
+    AllowedValues:
+    - us-east-1
+    - us-east-2
+    - us-west-1
+    - us-west-2
+    - ap-south-1
+    - ap-northeast-1
+    - ap-northeast-2
+    - ap-southeast-1
+    - ap-southeast-2
+    - ca-central-1
+    - eu-central-1
+    - eu-west-1
+    - eu-west-2
+    - eu-west-3
+    - sa-east-1
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: Name of an existing EC2 KeyPair to enable SSH access into servers
+  BaseImageId:
+    Type: String
+    Description: ID of consul image which is built from aws-consul-image.json packer template
+Mappings:
+  AvailabilityZoneMap:
+    us-east-1:
+      az1: us-east-1e
+      az2: us-east-1f
+      az3: us-east-1d
+    us-east-2:
+      az1: us-east-2b
+      az2: us-east-2c
+      az3: us-east-2a
+    us-west-1:
+      az1: us-west-1a
+      az2: us-west-1b
+      az3: us-west-1a
+    us-west-2:
+      az1: us-west-2b
+      az2: us-west-2c
+      az3: us-west-2a
+    ap-south-1:
+      az1: ap-south-1a
+      az2: ap-south-1b
+      az3: ap-south-1a
+    ap-northeast-1:
+      az1: ap-northeast-1c
+      az2: ap-northeast-1d
+      az3: ap-northeast-1a
+    ap-northeast-2:
+      az1: ap-northeast-2a
+      az2: ap-northeast-2c
+      az3: ap-northeast-2a
+    ap-southeast-1:
+      az1: ap-southeast-1b
+      az2: ap-southeast-1c
+      az3: ap-southeast-1a
+    ap-southeast-2:
+      az1: ap-southeast-2b
+      az2: ap-southeast-2c
+      az3: ap-southeast-2a
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.10.0.0/16
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: Consul cluster
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Consul cluster
+  VPCGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Consul cluster
+  PublicRoutingRule:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+      RouteTableId: !Ref RouteTable
+    DependsOn: VPCGatewayAttachment
+  PublicSubnetAz1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [AvailabilityZoneMap, !Ref Region, az1]
+      CidrBlock: 10.10.1.0/24
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Public Subnet AZ-1 (10.10.1.0/24)
+  RouteTableAssociationPublicSubnet1:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PublicSubnetAz1
+  PrivateSubnetAz1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [AvailabilityZoneMap, !Ref Region, az1]
+      CidrBlock: 10.10.101.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private Subnet AZ-1 (10.10.101.0/24)
+  PublicSubnetAz2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [AvailabilityZoneMap, !Ref Region, az2]
+      CidrBlock: 10.10.2.0/24
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Public Subnet AZ-2 (10.10.2.0/24)
+  RouteTableAssociationPublicSubnet2:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PublicSubnetAz2
+  PrivateSubnetAz2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [AvailabilityZoneMap, !Ref Region, az2]
+      CidrBlock: 10.10.102.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private Subnet AZ-2 (10.10.102.0/24)
+  PublicSubnetAz3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [AvailabilityZoneMap, !Ref Region, az3]
+      CidrBlock: 10.10.3.0/24
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Public Subnet AZ-3 (10.10.3.0/24)
+  RouteTableAssociationPublicSubnet3:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTable
+      SubnetId: !Ref PublicSubnetAz3
+  PrivateSubnetAz3:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !FindInMap [AvailabilityZoneMap, !Ref Region, az3]
+      CidrBlock: 10.10.103.0/24
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+      - Key: Name
+        Value: Private Subnet AZ-3 (10.10.103.0/24)
+  ConsulServer1:
+    Type: AWS::EC2::Instance
+    Metadata: 
+      AWS::CloudFormation::Init: 
+        config: 
+          files:
+            /etc/consul.d/config.json: 
+              content: !Sub
+                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"start_join\": [\"10.10.1.10\",\"10.10.2.10\",\"10.10.3.10\"], \"rejoin_after_leave\": true}"
+                - { Region: !Ref "AWS::Region" }
+              owner: root
+              group: root
+              mode: 000644
+          commands:
+            1_pvcreate:
+              command: sudo pvcreate /dev/xvdf
+            2_vgcreate:
+              command: sudo vgcreate vg0 /dev/xvdf
+            3_lvcreate:
+              command: sudo lvcreate -l 100%FREE -n consul vg0
+            4_mkfs:
+              command: sudo mkfs.ext4 /dev/vg0/consul
+            5_mkdir:
+              command: sudo mkdir -p /var/consul
+            6_fstab:
+              command: echo "/dev/mapper/vg0-consul /var/consul ext4 defaults 0 2" | sudo tee -a /etc/fstab
+            7_mount:
+              command: sudo mount -a
+    Properties:
+      ImageId: !Ref BaseImageId
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+      - !GetAtt [ConsulSecurityGroup, GroupId]
+      SubnetId: !Ref PublicSubnetAz1
+      PrivateIpAddress: 10.10.1.10
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvdf
+          Ebs:
+            DeleteOnTermination: false
+            VolumeSize: 10
+            VolumeType: gp2
+      UserData: 
+        Fn::Base64: !Join
+          - ''
+          - - "#!/usr/bin/env bash\n"
+            - !Sub
+              - "sudo cfn-init -v --stack ${StackName} --resource ConsulServer1 --region ${Region}\n"
+              - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
+            - sleep 10\n
+            - sudo systemctl restart consul\n
+      Tags:
+        - Key: Name
+          Value: Consul server 1
+    DependsOn: ConsulSecurityGroup
+  ConsulServer2:
+    Type: AWS::EC2::Instance
+    Metadata: 
+      AWS::CloudFormation::Init: 
+        config: 
+          files:
+            /etc/consul.d/config.json: 
+              content: !Sub
+                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"start_join\": [\"10.10.1.10\",\"10.10.2.10\",\"10.10.3.10\"], \"rejoin_after_leave\": true}"
+                - { Region: !Ref "AWS::Region" }
+              owner: root
+              group: root
+              mode: 000644
+          commands:
+            1_pvcreate:
+              command: sudo pvcreate /dev/xvdf
+            2_vgcreate:
+              command: sudo vgcreate vg0 /dev/xvdf
+            3_lvcreate:
+              command: sudo lvcreate -l 100%FREE -n consul vg0
+            4_mkfs:
+              command: sudo mkfs.ext4 /dev/vg0/consul
+            5_mkdir:
+              command: sudo mkdir -p /var/consul
+            6_fstab:
+              command: echo "/dev/mapper/vg0-consul /var/consul ext4 defaults 0 2" | sudo tee -a /etc/fstab
+            7_mount:
+              command: sudo mount -a
+    Properties:
+      ImageId: !Ref BaseImageId
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+      - !GetAtt [ConsulSecurityGroup, GroupId]
+      SubnetId: !Ref PublicSubnetAz2
+      PrivateIpAddress: 10.10.2.10
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvdf
+          Ebs:
+            DeleteOnTermination: false
+            VolumeSize: 10
+            VolumeType: gp2
+      UserData: 
+        Fn::Base64: !Sub
+          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer2 --region ${Region}\nsleep 10\n sudo systemctl restart consul\n"
+          - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
+      Tags:
+        - Key: Name
+          Value: Consul server 2
+    DependsOn: ConsulSecurityGroup
+  ConsulServer3:
+    Type: AWS::EC2::Instance
+    Metadata: 
+      AWS::CloudFormation::Init: 
+        config: 
+          files:
+            /etc/consul.d/config.json: 
+              content: !Sub
+                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"start_join\": [\"10.10.1.10\",\"10.10.2.10\",\"10.10.3.10\"], \"rejoin_after_leave\": true}"
+                - { Region: !Ref "AWS::Region" }
+              owner: root
+              group: root
+              mode: 000644
+          commands:
+            1_pvcreate:
+              command: sudo pvcreate /dev/xvdf
+            2_vgcreate:
+              command: sudo vgcreate vg0 /dev/xvdf
+            3_lvcreate:
+              command: sudo lvcreate -l 100%FREE -n consul vg0
+            4_mkfs:
+              command: sudo mkfs.ext4 /dev/vg0/consul
+            5_mkdir:
+              command: sudo mkdir -p /var/consul
+            6_fstab:
+              command: echo "/dev/mapper/vg0-consul /var/consul ext4 defaults 0 2" | sudo tee -a /etc/fstab
+            7_mount:
+              command: sudo mount -a
+    Properties:
+      ImageId: !Ref BaseImageId
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroupIds:
+      - !GetAtt [ConsulSecurityGroup, GroupId]
+      SubnetId: !Ref PublicSubnetAz3
+      PrivateIpAddress: 10.10.3.10
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvdf
+          Ebs:
+            DeleteOnTermination: false
+            VolumeSize: 10
+            VolumeType: gp2
+      UserData: 
+        Fn::Base64: !Sub
+          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer3 --region ${Region}\nsleep 10\n sudo systemctl restart consul\n"
+          - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
+      Tags:
+        - Key: Name
+          Value: Consul server 3
+    DependsOn: ConsulSecurityGroup
+  ConsulSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for web servers
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        Description: Allow SSH
+        FromPort: 22
+        ToPort: 22
+        IpProtocol: tcp
+      - CidrIp: !GetAtt [VPC, CidrBlock]
+        FromPort: 8300
+        ToPort: 8302
+        IpProtocol: tcp
+      - CidrIp: !GetAtt [VPC, CidrBlock]
+        FromPort: 8301
+        ToPort: 8302
+        IpProtocol: udp
+      - CidrIp: !GetAtt [VPC, CidrBlock]
+        FromPort: 8400
+        ToPort: 8400
+        IpProtocol: tcp
+      - CidrIp: 0.0.0.0/0
+        FromPort: 8500
+        ToPort: 8500
+        IpProtocol: tcp
+      - CidrIp: !GetAtt [VPC, CidrBlock]
+        FromPort: 8600
+        ToPort: 8600
+        IpProtocol: tcp
+      - CidrIp: !GetAtt [VPC, CidrBlock]
+        FromPort: 8600
+        ToPort: 8600
+        IpProtocol: udp
+      Tags:
+        - Key: Name
+          Value: Consul Security Group

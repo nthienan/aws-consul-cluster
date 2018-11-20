@@ -1,0 +1,15 @@
+[Unit]
+Description=Consul service discovery agent
+Requires=network-online.target
+After=network.target
+
+[Service]
+EnvironmentFile=-/etc/default/consul
+ExecStartPre=/usr/bin/consul validate /etc/consul.d/
+ExecStart=/usr/bin/consul agent $OPTIONS -config-dir=/etc/consul.d/
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGINT
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

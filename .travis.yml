@@ -1,0 +1,20 @@
+sudo: required
+language: python3.6
+env:
+  global:
+    - S3_BUCKET=nthienan-public
+    - S3_PREFIX=cloudformation/aws-consul-cluster
+install: true
+
+before_script:
+  - pip install --user yamllint
+script:
+  - yamllint *.yaml *.yml | true
+
+before_deploy:
+  - pip install --user awscli
+deploy:
+  - provider: script
+    script: aws s3 cp aws-consul-cluster.yaml s3://$S3_BUCKET/$S3_PREFIX/
+    on:
+      branch: master

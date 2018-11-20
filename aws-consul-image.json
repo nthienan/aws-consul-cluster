@@ -1,0 +1,60 @@
+{
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "region": "{{ user `aws_region` }}",
+            "source_ami": "ami-0c5199d385b432989",
+            "instance_type": "t2.micro",
+            "ssh_username": "ubuntu",
+            "ami_name": "hashicorp-consul-1.3.1-{{ timestamp }}",
+            "tags": {
+                "Generation": "1.0.0",
+                "OS": "Ubuntu 18.04 LTS",
+                "Name": "hashicorp-consul-1.3.1-{{ timestamp }}",
+                "Version": "1.3.1"
+            }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "echo \"Installing common packages...\"",
+                "sudo apt-get update -y",
+                "sudo apt-get install -y wget curl unzip python-pip",
+                "sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
+            ]
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "echo \"Installing consul...\"",
+                "curl -LO https://releases.hashicorp.com/consul/1.3.1/consul_1.3.1_linux_amd64.zip",
+                "unzip ./consul_*_linux_amd64.zip",
+                "sudo mv consul /usr/bin/",
+                "consul --version",
+                "sudo mkdir -p /etc/consul.d /var/consul"
+            ]
+        },
+        {
+            "type": "file",
+            "source": "consul.service",
+            "destination": "/tmp/"
+        },
+        {
+            "type": "file",
+            "source": "config.json",
+            "destination": "/tmp/"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo mv /tmp/config.json /etc/consul.d/",
+                "sudo mv /tmp/consul.service /etc/systemd/system/",
+                "echo \"Enabling consul service...\"",
+                "sudo systemctl daemon-reload",
+                "sudo systemctl enable consul.service"
+            ]
+        }
+    ]
+}
