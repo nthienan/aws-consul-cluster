@@ -16,6 +16,10 @@
   - **Build Consul AMI**: Firstly, you have to build AMI from packer template. Then take a note for AMI ID, you'll need it in later steps
     ```bash
     packer build aws-consul-image.json
+    ...
+    ==> Builds finished. The artifacts of successful builds are:
+    --> amazon-ebs: AMIs were created:
+    ap-southeast-1: ami-035e1bdc6f1039965
     ```
 
   - **One click**: 
