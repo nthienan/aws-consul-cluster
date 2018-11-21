@@ -217,14 +217,9 @@ Resources:
             VolumeSize: 10
             VolumeType: gp2
       UserData: 
-        Fn::Base64: !Join
-          - ''
-          - - "#!/usr/bin/env bash\n"
-            - !Sub
-              - "sudo cfn-init -v --stack ${StackName} --resource ConsulServer1 --region ${Region}\n"
-              - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
-            - sleep 10\n
-            - sudo systemctl restart consul\n
+        Fn::Base64: !Sub
+          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer1 --region ${Region} && sleep 10 && sudo systemctl restart consul\n"
+          - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
       Tags:
         - Key: Name
           Value: Consul server 1
@@ -273,7 +268,7 @@ Resources:
             VolumeType: gp2
       UserData: 
         Fn::Base64: !Sub
-          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer2 --region ${Region}\nsleep 10\n sudo systemctl restart consul\n"
+          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer2 --region ${Region} && sleep 10 && sudo systemctl restart consul\n"
           - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
       Tags:
         - Key: Name
@@ -323,7 +318,7 @@ Resources:
             VolumeType: gp2
       UserData: 
         Fn::Base64: !Sub
-          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer3 --region ${Region}\nsleep 10\n sudo systemctl restart consul\n"
+          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer3 --region ${Region} && sleep 10 && sudo systemctl restart consul\n"
           - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
       Tags:
         - Key: Name

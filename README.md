@@ -39,5 +39,5 @@
 
   - **Describe stack**:
     ```bash
-    aws cloudformation describe-stacks --stack-name --stack-name consul-cluster
+    aws cloudformation describe-stacks --stack-name consul-cluster
     ```
