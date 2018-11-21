@@ -27,6 +27,15 @@ Parameters:
   BaseImageId:
     Type: String
     Description: ID of consul image which is built from aws-consul-image.json packer template
+  InstanceType:
+    Type: String
+    Description: Instance type to launch EC2 instances
+    Default: t2.micro
+  DataVolumeSize:
+    Type: Number
+    MinValue: 5
+    Default: 5
+    ConstraintDescription: Must greater than 5
 Mappings:
   AvailabilityZoneMap:
     us-east-1:
@@ -204,7 +213,7 @@ Resources:
               command: sudo mount -a
     Properties:
       ImageId: !Ref BaseImageId
-      InstanceType: t2.micro
+      InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       SecurityGroupIds:
       - !GetAtt [ConsulSecurityGroup, GroupId]
@@ -214,7 +223,7 @@ Resources:
         - DeviceName: /dev/xvdf
           Ebs:
             DeleteOnTermination: false
-            VolumeSize: 10
+            VolumeSize: !Ref DataVolumeSize
             VolumeType: gp2
       UserData: 
         Fn::Base64: !Sub
@@ -254,7 +263,7 @@ Resources:
               command: sudo mount -a
     Properties:
       ImageId: !Ref BaseImageId
-      InstanceType: t2.micro
+      InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       SecurityGroupIds:
       - !GetAtt [ConsulSecurityGroup, GroupId]
@@ -264,7 +273,7 @@ Resources:
         - DeviceName: /dev/xvdf
           Ebs:
             DeleteOnTermination: false
-            VolumeSize: 10
+            VolumeSize: !Ref DataVolumeSize
             VolumeType: gp2
       UserData: 
         Fn::Base64: !Sub
@@ -304,7 +313,7 @@ Resources:
               command: sudo mount -a
     Properties:
       ImageId: !Ref BaseImageId
-      InstanceType: t2.micro
+      InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
       SecurityGroupIds:
       - !GetAtt [ConsulSecurityGroup, GroupId]
@@ -314,7 +323,7 @@ Resources:
         - DeviceName: /dev/xvdf
           Ebs:
             DeleteOnTermination: false
-            VolumeSize: 10
+            VolumeSize: !Ref DataVolumeSize
             VolumeType: gp2
       UserData: 
         Fn::Base64: !Sub
