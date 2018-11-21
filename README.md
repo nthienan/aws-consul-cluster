@@ -28,7 +28,7 @@
 
   - **Create stack**:
     ```bash
-    aws cloudformation create-stack --stack-name consul-cluster --template-body file://aws-consul-cluster.yaml --parameters ParameterKey=BaseImageId,ParameterValue=<ami-consul-id> ParameterKey=KeyName,ParameterValue=<existing-ec2-key-pair-name>
+    aws cloudformation create-stack --stack-name consul-cluster --template-body file://aws-consul-cluster.yaml --capabilities CAPABILITY_IAM --parameters ParameterKey=BaseImageId,ParameterValue=<ami-consul-id> ParameterKey=KeyName,ParameterValue=<existing-ec2-key-pair-name>
     ```
 
   - **Update stack**:

@@ -191,7 +191,7 @@ Resources:
           files:
             /etc/consul.d/config.json: 
               content: !Sub
-                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"start_join\": [\"10.10.1.10\",\"10.10.2.10\",\"10.10.3.10\"], \"rejoin_after_leave\": true}"
+                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"retry_join\": [\"provider=aws tag_key=consul-auto-join tag_value=server\"], \"rejoin_after_leave\": true}"
                 - { Region: !Ref "AWS::Region" }
               owner: root
               group: root
@@ -215,6 +215,7 @@ Resources:
       ImageId: !Ref BaseImageId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref InstanceProfile
       SecurityGroupIds:
       - !GetAtt [ConsulSecurityGroup, GroupId]
       SubnetId: !Ref PublicSubnetAz1
@@ -232,6 +233,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Consul server 1
+        - Key: consul-auto-join
+          Value: server
     DependsOn: ConsulSecurityGroup
   ConsulServer2:
     Type: AWS::EC2::Instance
@@ -241,7 +244,7 @@ Resources:
           files:
             /etc/consul.d/config.json: 
               content: !Sub
-                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"start_join\": [\"10.10.1.10\",\"10.10.2.10\",\"10.10.3.10\"], \"rejoin_after_leave\": true}"
+                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"retry_join\": [\"provider=aws tag_key=consul-auto-join tag_value=server\"], \"rejoin_after_leave\": true}"
                 - { Region: !Ref "AWS::Region" }
               owner: root
               group: root
@@ -265,6 +268,7 @@ Resources:
       ImageId: !Ref BaseImageId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref InstanceProfile
       SecurityGroupIds:
       - !GetAtt [ConsulSecurityGroup, GroupId]
       SubnetId: !Ref PublicSubnetAz2
@@ -282,6 +286,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Consul server 2
+        - Key: consul-auto-join
+          Value: server
     DependsOn: ConsulSecurityGroup
   ConsulServer3:
     Type: AWS::EC2::Instance
@@ -291,7 +297,7 @@ Resources:
           files:
             /etc/consul.d/config.json: 
               content: !Sub
-                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"start_join\": [\"10.10.1.10\",\"10.10.2.10\",\"10.10.3.10\"], \"rejoin_after_leave\": true}"
+                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"retry_join\": [\"provider=aws tag_key=consul-auto-join tag_value=server\"], \"rejoin_after_leave\": true}"
                 - { Region: !Ref "AWS::Region" }
               owner: root
               group: root
@@ -315,6 +321,7 @@ Resources:
       ImageId: !Ref BaseImageId
       InstanceType: !Ref InstanceType
       KeyName: !Ref KeyName
+      IamInstanceProfile: !Ref InstanceProfile
       SecurityGroupIds:
       - !GetAtt [ConsulSecurityGroup, GroupId]
       SubnetId: !Ref PublicSubnetAz3
@@ -332,6 +339,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Consul server 3
+        - Key: consul-auto-join
+          Value: server
     DependsOn: ConsulSecurityGroup
   ConsulSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -371,3 +380,30 @@ Resources:
       Tags:
         - Key: Name
           Value: Consul Security Group
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref DescribeInstanceRole
+  DescribeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: describe-instances-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeInstances
+                Resource:
+                  - "*"
