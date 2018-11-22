@@ -183,165 +183,6 @@ Resources:
       Tags:
       - Key: Name
         Value: Private Subnet AZ-3 (10.10.103.0/24)
-  ConsulServer1:
-    Type: AWS::EC2::Instance
-    Metadata: 
-      AWS::CloudFormation::Init: 
-        config: 
-          files:
-            /etc/consul.d/config.json: 
-              content: !Sub
-                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"retry_join\": [\"provider=aws tag_key=consul-auto-join tag_value=server\"], \"rejoin_after_leave\": true}"
-                - { Region: !Ref "AWS::Region" }
-              owner: root
-              group: root
-              mode: 000644
-          commands:
-            1_pvcreate:
-              command: sudo pvcreate /dev/xvdf
-            2_vgcreate:
-              command: sudo vgcreate vg0 /dev/xvdf
-            3_lvcreate:
-              command: sudo lvcreate -l 100%FREE -n consul vg0
-            4_mkfs:
-              command: sudo mkfs.ext4 /dev/vg0/consul
-            5_mkdir:
-              command: sudo mkdir -p /var/consul
-            6_fstab:
-              command: echo "/dev/mapper/vg0-consul /var/consul ext4 defaults 0 2" | sudo tee -a /etc/fstab
-            7_mount:
-              command: sudo mount -a
-    Properties:
-      ImageId: !Ref BaseImageId
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref InstanceProfile
-      SecurityGroupIds:
-      - !GetAtt [ConsulSecurityGroup, GroupId]
-      SubnetId: !Ref PublicSubnetAz1
-      PrivateIpAddress: 10.10.1.10
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvdf
-          Ebs:
-            DeleteOnTermination: false
-            VolumeSize: !Ref DataVolumeSize
-            VolumeType: gp2
-      UserData: 
-        Fn::Base64: !Sub
-          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer1 --region ${Region} && sleep 10 && sudo systemctl restart consul\n"
-          - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
-      Tags:
-        - Key: Name
-          Value: Consul server 1
-        - Key: consul-auto-join
-          Value: server
-    DependsOn: ConsulSecurityGroup
-  ConsulServer2:
-    Type: AWS::EC2::Instance
-    Metadata: 
-      AWS::CloudFormation::Init: 
-        config: 
-          files:
-            /etc/consul.d/config.json: 
-              content: !Sub
-                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"retry_join\": [\"provider=aws tag_key=consul-auto-join tag_value=server\"], \"rejoin_after_leave\": true}"
-                - { Region: !Ref "AWS::Region" }
-              owner: root
-              group: root
-              mode: 000644
-          commands:
-            1_pvcreate:
-              command: sudo pvcreate /dev/xvdf
-            2_vgcreate:
-              command: sudo vgcreate vg0 /dev/xvdf
-            3_lvcreate:
-              command: sudo lvcreate -l 100%FREE -n consul vg0
-            4_mkfs:
-              command: sudo mkfs.ext4 /dev/vg0/consul
-            5_mkdir:
-              command: sudo mkdir -p /var/consul
-            6_fstab:
-              command: echo "/dev/mapper/vg0-consul /var/consul ext4 defaults 0 2" | sudo tee -a /etc/fstab
-            7_mount:
-              command: sudo mount -a
-    Properties:
-      ImageId: !Ref BaseImageId
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref InstanceProfile
-      SecurityGroupIds:
-      - !GetAtt [ConsulSecurityGroup, GroupId]
-      SubnetId: !Ref PublicSubnetAz2
-      PrivateIpAddress: 10.10.2.10
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvdf
-          Ebs:
-            DeleteOnTermination: false
-            VolumeSize: !Ref DataVolumeSize
-            VolumeType: gp2
-      UserData: 
-        Fn::Base64: !Sub
-          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer2 --region ${Region} && sleep 10 && sudo systemctl restart consul\n"
-          - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
-      Tags:
-        - Key: Name
-          Value: Consul server 2
-        - Key: consul-auto-join
-          Value: server
-    DependsOn: ConsulSecurityGroup
-  ConsulServer3:
-    Type: AWS::EC2::Instance
-    Metadata: 
-      AWS::CloudFormation::Init: 
-        config: 
-          files:
-            /etc/consul.d/config.json: 
-              content: !Sub
-                - "{\"bootstrap_expect\": 3,\"bind_addr\": \"0.0.0.0\",\"client_addr\": \"0.0.0.0\",\"data_dir\": \"/var/consul\",\"enable_script_checks\": true,\"enable_syslog\": true,\"server\": true,\"ui\": true,\"log_level\": \"INFO\",\"datacenter\": \"${Region}\", \"retry_join\": [\"provider=aws tag_key=consul-auto-join tag_value=server\"], \"rejoin_after_leave\": true}"
-                - { Region: !Ref "AWS::Region" }
-              owner: root
-              group: root
-              mode: 000644
-          commands:
-            1_pvcreate:
-              command: sudo pvcreate /dev/xvdf
-            2_vgcreate:
-              command: sudo vgcreate vg0 /dev/xvdf
-            3_lvcreate:
-              command: sudo lvcreate -l 100%FREE -n consul vg0
-            4_mkfs:
-              command: sudo mkfs.ext4 /dev/vg0/consul
-            5_mkdir:
-              command: sudo mkdir -p /var/consul
-            6_fstab:
-              command: echo "/dev/mapper/vg0-consul /var/consul ext4 defaults 0 2" | sudo tee -a /etc/fstab
-            7_mount:
-              command: sudo mount -a
-    Properties:
-      ImageId: !Ref BaseImageId
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref KeyName
-      IamInstanceProfile: !Ref InstanceProfile
-      SecurityGroupIds:
-      - !GetAtt [ConsulSecurityGroup, GroupId]
-      SubnetId: !Ref PublicSubnetAz3
-      PrivateIpAddress: 10.10.3.10
-      BlockDeviceMappings:
-        - DeviceName: /dev/xvdf
-          Ebs:
-            DeleteOnTermination: false
-            VolumeSize: !Ref DataVolumeSize
-            VolumeType: gp2
-      UserData: 
-        Fn::Base64: !Sub
-          - "#!/usr/bin/env bash\n sudo cfn-init -v --stack ${StackName} --resource ConsulServer3 --region ${Region} && sleep 10 && sudo systemctl restart consul\n"
-          - { StackName: !Ref "AWS::StackName", Region: !Ref "AWS::Region" }
-      Tags:
-        - Key: Name
-          Value: Consul server 3
-        - Key: consul-auto-join
-          Value: server
-    DependsOn: ConsulSecurityGroup
   ConsulSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -353,15 +194,15 @@ Resources:
         FromPort: 22
         ToPort: 22
         IpProtocol: tcp
-      - CidrIp: !GetAtt [VPC, CidrBlock]
+      - CidrIp: !GetAtt VPC.CidrBlock
         FromPort: 8300
         ToPort: 8302
         IpProtocol: tcp
-      - CidrIp: !GetAtt [VPC, CidrBlock]
+      - CidrIp: !GetAtt VPC.CidrBlock
         FromPort: 8301
         ToPort: 8302
         IpProtocol: udp
-      - CidrIp: !GetAtt [VPC, CidrBlock]
+      - CidrIp: !GetAtt VPC.CidrBlock
         FromPort: 8400
         ToPort: 8400
         IpProtocol: tcp
@@ -369,17 +210,77 @@ Resources:
         FromPort: 8500
         ToPort: 8500
         IpProtocol: tcp
-      - CidrIp: !GetAtt [VPC, CidrBlock]
+      - CidrIp: !GetAtt VPC.CidrBlock
         FromPort: 8600
         ToPort: 8600
         IpProtocol: tcp
-      - CidrIp: !GetAtt [VPC, CidrBlock]
+      - CidrIp: !GetAtt VPC.CidrBlock
         FromPort: 8600
         ToPort: 8600
         IpProtocol: udp
       Tags:
         - Key: Name
           Value: Consul Security Group
+  ConsulAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      DesiredCapacity: 3
+      HealthCheckGracePeriod: 120
+      HealthCheckType: ELB
+      LaunchTemplate:
+        LaunchTemplateId: !Ref ConsulLaunchTemplate
+        Version: 1
+      MinSize: 3
+      MaxSize: 9
+      VPCZoneIdentifier:
+        - !Ref PublicSubnetAz1
+        - !Ref PublicSubnetAz2
+        - !Ref PublicSubnetAz3
+  ConsulLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: consul-cluster
+      LaunchTemplateData:
+        ImageId: !Ref BaseImageId
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        SecurityGroupIds:
+          - !GetAtt ConsulSecurityGroup.GroupId
+        IamInstanceProfile: 
+          Arn: !GetAtt InstanceProfile.Arn
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvdf
+            Ebs:
+              DeleteOnTermination: false
+              VolumeSize: !Ref DataVolumeSize
+              VolumeType: gp2
+        UserData:
+          Fn::Base64: !Join
+            - "\n"
+            - - "#!/usr/bin/env bash"
+              - "# mount ebs volume"
+              - sudo pvcreate /dev/xvdf
+              - sudo vgcreate vg0 /dev/xvdf
+              - sudo lvcreate -l 100%FREE -n consul vg0
+              - sudo mkfs.ext4 /dev/vg0/consul
+              - sudo mkdir -p /var/consul
+              - echo "/dev/mapper/vg0-consul /var/consul ext4 defaults 0 2" | sudo tee -a /etc/fstab
+              - sudo mount -a
+              - "# configure consul"
+              - AWS_DEFAULT_REGION=`curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | jq -c -r .region`
+              - "echo {\\\"bootstrap_expect\\\": 3,\\\"bind_addr\\\": \\\"0.0.0.0\\\",\\\"client_addr\\\": \\\"0.0.0.0\\\",\\\"data_dir\\\": \\\"/var/consul\\\",\\\"enable_script_checks\\\": true,\\\"enable_syslog\\\": true,\\\"server\\\": true,\\\"ui\\\": true,\\\"log_level\\\": \\\"INFO\\\",\\\"datacenter\\\": \\\"${AWS_DEFAULT_REGION}\\\", \\\"retry_join\\\": [\\\"provider=aws tag_key=consul-auto-join tag_value=server\\\"], \\\"rejoin_after_leave\\\": true} | sudo tee /etc/consul.d/config.json"
+              - sudo systemctl restart consul
+        TagSpecifications:
+          - ResourceType: instance
+            Tags:
+              - Key: Name
+                Value: Consul server
+              - Key: consul-auto-join
+                Value: server
+          - ResourceType: volume
+            Tags:
+              - Key: Name
+                Value: Consul server
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:

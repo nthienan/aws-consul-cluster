@@ -21,7 +21,7 @@
             "inline": [
                 "echo \"Installing common packages...\"",
                 "sudo apt-get update -y",
-                "sudo apt-get install -y wget curl unzip python-pip",
+                "sudo apt-get install -y wget curl unzip python-pip jq",
                 "sudo pip install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz"
             ]
         },
