@@ -227,6 +227,8 @@ Resources:
       DesiredCapacity: 3
       HealthCheckGracePeriod: 120
       HealthCheckType: ELB
+      TargetGroupARNs:
+        - !Ref ConsulTargetGroup
       LaunchTemplate:
         LaunchTemplateId: !Ref ConsulLaunchTemplate
         Version: 1
@@ -281,6 +283,50 @@ Resources:
             Tags:
               - Key: Name
                 Value: Consul server
+  ConsulLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group load balancer of consul cluster
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+      - CidrIp: 0.0.0.0/0
+        FromPort: 80
+        ToPort: 80
+        IpProtocol: tcp
+      Tags:
+        - Key: Name
+          Value: Consul load balancer security group
+  ConsulLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnetAz1
+        - !Ref PublicSubnetAz2
+        - !Ref PublicSubnetAz3
+      SecurityGroups:
+        - !GetAtt ConsulLoadBalancerSecurityGroup.GroupId
+  ConsulTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Protocol: HTTP
+      Port: 8500
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: 8500
+      HealthCheckPath: /v1/health/checks/consul
+      VpcId: !Ref VPC
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 60
+  ConsulUiListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ConsulTargetGroup
+      LoadBalancerArn: !Ref ConsulLoadBalancer
+      Port: 80
+      Protocol: HTTP
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -308,3 +354,10 @@ Resources:
                   - ec2:DescribeInstances
                 Resource:
                   - "*"
+Outputs:
+  ConsulClusterUrl:
+    Description: URL to access Consul UI of the cluster
+    Value: !Join
+      - ""
+      - - "http://"
+        - !GetAtt ConsulLoadBalancer.DNSName
