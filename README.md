@@ -10,6 +10,7 @@
   - Architecture:
   
   ![Consul cluster on AWS](aws-consul-cluster.png "AWS Consul Cluster")
+  ![Consul cluster on AWS 3D](aws-consul-cluste-3d.png "AWS Consul Cluster 3D")
 
 - ### How to deploy:
 
