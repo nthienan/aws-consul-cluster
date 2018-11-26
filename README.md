@@ -6,7 +6,7 @@
   - A virtual private cloud (VPC) configured with public and private subnets across three Availability Zones. This provides the network infrastructure for your HashiCorp Consul deployment.
   - An internet gateway to provide access to the internet
   - Each EC2 instance has two EBS volume. One volume is root volume, and the other is data volume configured for storing consul data only. That is convinent way for backup and restore consul data.
-  - An auto scaling group to ensure the number of instances in cluster always is as the desired number. You can specify the number of servers to be created as 3, 5, 7, 9.
+  - An auto scaling group to ensure the number of instances in cluster always is as the desired number. You can specify the number of servers to be created as 3, 5, 7, 9. When a scale out or scale in event occurs, the server will be automatically join or un-join the cluster.
   - Architecture:
   
   ![Consul cluster on AWS](aws-consul-cluster.png "AWS Consul Cluster")
